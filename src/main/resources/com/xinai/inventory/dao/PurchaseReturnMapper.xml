@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinai.inventory.dao.PurchaseDao">
+    <resultMap id="returnMap" type="PurchaseReturn">
+        <id property="returnId" column="return_id"/>
+        <result property="inboundId" column="inbound_id"/>
+        <result property="materialId" column="material_id"/>
+        <result property="materialName" column="material_name"/>
+        <result property="returnQty" column="return_qty"/>
+        <result property="returnReason" column="return_reason"/>
+        <result property="returnDate" column="return_date"/>
+        <result property="supplierId" column="supplier_id"/>
+        <result property="operator" column="operator"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="getReturnList" resultMap="returnMap">
+        SELECT * FROM purchase_return
+        <where>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+        </where>
+        ORDER BY create_time DESC
+        <if test="offset != null and limit != null">LIMIT #{offset}, #{limit}</if>
+    </select>
+
+    <select id="getReturnCount" resultType="int">
+        SELECT count(*) FROM purchase_return
+        <where>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+        </where>
+    </select>
+
+    <select id="getReturnById" resultMap="returnMap">
+        SELECT * FROM purchase_return WHERE return_id = #{returnId}
+    </select>
+
+    <insert id="insertReturn" parameterType="PurchaseReturn" useGeneratedKeys="true" keyProperty="returnId">
+        INSERT INTO purchase_return (inbound_id, material_id, material_name, return_qty, return_reason, return_date, supplier_id, operator, status, remark)
+        VALUES (#{inboundId}, #{materialId}, #{materialName}, #{returnQty}, #{returnReason}, #{returnDate}, #{supplierId}, #{operator}, '0', #{remark})
+    </insert>
+
+    <update id="confirmReturn">
+        UPDATE purchase_return SET status = '1' WHERE return_id = #{returnId}
+    </update>
+</mapper>

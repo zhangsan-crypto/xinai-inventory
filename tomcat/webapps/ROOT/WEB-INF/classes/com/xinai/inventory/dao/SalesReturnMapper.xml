@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinai.inventory.dao.SalesDao">
+    <resultMap id="salesReturnMap" type="SalesReturn">
+        <id property="returnId" column="return_id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="customerId" column="customer_id"/>
+        <result property="materialId" column="material_id"/>
+        <result property="materialName" column="material_name"/>
+        <result property="returnQty" column="return_qty"/>
+        <result property="returnReason" column="return_reason"/>
+        <result property="returnDate" column="return_date"/>
+        <result property="approvalStatus" column="approval_status"/>
+        <result property="operator" column="operator"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="getSalesReturnList" resultMap="salesReturnMap">
+        SELECT * FROM sales_return ORDER BY create_time DESC
+        <if test="offset != null and limit != null">LIMIT #{offset}, #{limit}</if>
+    </select>
+
+    <select id="getSalesReturnCount" resultType="int">SELECT count(*) FROM sales_return</select>
+
+    <select id="getSalesReturnById" resultMap="salesReturnMap">
+        SELECT * FROM sales_return WHERE return_id = #{returnId}
+    </select>
+
+    <insert id="insertSalesReturn" parameterType="SalesReturn" useGeneratedKeys="true" keyProperty="returnId">
+        INSERT INTO sales_return (order_id, customer_id, material_id, material_name, return_qty, return_reason, return_date, approval_status, operator, status, remark)
+        VALUES (#{orderId}, #{customerId}, #{materialId}, #{materialName}, #{returnQty}, #{returnReason}, #{returnDate}, '0', #{operator}, '0', #{remark})
+    </insert>
+
+    <update id="approveSalesReturn">
+        UPDATE sales_return SET approval_status = '1' WHERE return_id = #{returnId}
+    </update>
+
+    <update id="confirmSalesReturn">
+        UPDATE sales_return SET status = '1' WHERE return_id = #{returnId}
+    </update>
+</mapper>

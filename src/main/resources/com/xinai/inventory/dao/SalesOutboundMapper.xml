@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinai.inventory.dao.SalesDao">
+    <resultMap id="outboundMap" type="SalesOutbound">
+        <id property="outboundId" column="outbound_id"/>
+        <result property="orderId" column="order_id"/>
+        <result property="materialId" column="material_id"/>
+        <result property="materialName" column="material_name"/>
+        <result property="outboundQty" column="outbound_qty"/>
+        <result property="outboundDate" column="outbound_date"/>
+        <result property="operator" column="operator"/>
+        <result property="warehouseKeeper" column="warehouse_keeper"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="getOutboundList" resultMap="outboundMap">
+        SELECT * FROM sales_outbound ORDER BY create_time DESC
+        <if test="offset != null and limit != null">LIMIT #{offset}, #{limit}</if>
+    </select>
+
+    <select id="getOutboundCount" resultType="int">SELECT count(*) FROM sales_outbound</select>
+
+    <select id="getOutboundById" resultMap="outboundMap">
+        SELECT * FROM sales_outbound WHERE outbound_id = #{outboundId}
+    </select>
+
+    <insert id="insertOutbound" parameterType="SalesOutbound" useGeneratedKeys="true" keyProperty="outboundId">
+        INSERT INTO sales_outbound (order_id, material_id, material_name, outbound_qty, outbound_date, operator, status, remark)
+        VALUES (#{orderId}, #{materialId}, #{materialName}, #{outboundQty}, #{outboundDate}, #{operator}, '0', #{remark})
+    </insert>
+
+    <update id="confirmOutbound">
+        UPDATE sales_outbound SET status = '1', warehouse_keeper = #{warehouseKeeper}
+        WHERE outbound_id = #{outboundId}
+    </update>
+
+    <select id="getPendingOutbounds" resultMap="outboundMap">
+        SELECT * FROM sales_outbound WHERE status = '0' ORDER BY outbound_date DESC
+    </select>
+</mapper>

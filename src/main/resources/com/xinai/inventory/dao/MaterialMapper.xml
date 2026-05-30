@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinai.inventory.dao.InventoryDao">
+    <resultMap id="materialMap" type="Material">
+        <id property="materialId" column="material_id"/>
+        <result property="materialName" column="material_name"/>
+        <result property="categoryCode" column="category_code"/>
+        <result property="specCode" column="spec_code"/>
+        <result property="materialSeq" column="material_seq"/>
+        <result property="specModel" column="spec_model"/>
+        <result property="unit" column="unit"/>
+        <result property="refPrice" column="ref_price"/>
+        <result property="safetyLower" column="safety_lower"/>
+        <result property="safetyUpper" column="safety_upper"/>
+        <result property="status" column="status"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <select id="getMaterialList" resultMap="materialMap">
+        SELECT * FROM material
+        <where>
+            <if test="categoryCode != null and categoryCode != ''">AND category_code = #{categoryCode}</if>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+            <if test="keyword != null and keyword != ''">AND (material_name LIKE concat('%',#{keyword},'%') OR material_id LIKE concat('%',#{keyword},'%') OR spec_model LIKE concat('%',#{keyword},'%'))</if>
+        </where>
+        ORDER BY create_time DESC
+        <if test="offset != null and limit != null">LIMIT #{offset}, #{limit}</if>
+    </select>
+
+    <select id="getMaterialCount" resultType="int">
+        SELECT count(*) FROM material
+        <where>
+            <if test="categoryCode != null and categoryCode != ''">AND category_code = #{categoryCode}</if>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+            <if test="keyword != null and keyword != ''">AND (material_name LIKE concat('%',#{keyword},'%') OR material_id LIKE concat('%',#{keyword},'%'))</if>
+        </where>
+    </select>
+
+    <select id="getMaterialById" resultMap="materialMap">
+        SELECT * FROM material WHERE material_id = #{materialId}
+    </select>
+
+    <insert id="insertMaterial" parameterType="Material">
+        INSERT INTO material (material_id, material_name, category_code, spec_code, material_seq, spec_model, unit, ref_price, safety_lower, safety_upper, status)
+        VALUES (#{materialId}, #{materialName}, #{categoryCode}, #{specCode}, #{materialSeq}, #{specModel}, #{unit}, #{refPrice}, #{safetyLower}, #{safetyUpper}, '0')
+    </insert>
+
+    <update id="updateMaterial" parameterType="Material">
+        UPDATE material
+        SET material_name = #{materialName}, spec_model = #{specModel}, unit = #{unit},
+            ref_price = #{refPrice}, safety_lower = #{safetyLower}, safety_upper = #{safetyUpper}
+        WHERE material_id = #{materialId}
+    </update>
+
+    <update id="updateMaterialStatus">
+        UPDATE material SET status = #{status} WHERE material_id = #{materialId}
+    </update>
+
+    <select id="getMaxMaterialSeq" resultType="int">
+        SELECT COALESCE(MAX(CAST(material_seq AS SIGNED)), 0) FROM material
+        WHERE category_code = #{categoryCode} AND spec_code = #{specCode}
+    </select>
+
+    <select id="getAllActiveMaterials" resultMap="materialMap">
+        SELECT * FROM material WHERE status = '0' ORDER BY category_code, material_id
+    </select>
+</mapper>

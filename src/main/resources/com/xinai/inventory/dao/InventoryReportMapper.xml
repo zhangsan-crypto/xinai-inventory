@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinai.inventory.dao.InventoryDao">
+    <select id="getLedgerReport" resultType="java.util.Map">
+        SELECT i.material_id, i.material_name, i.spec_model, i.current_qty, i.unit, i.ref_price,
+               (i.current_qty * i.ref_price) as total_value, i.last_inbound_date, i.last_outbound_date
+        FROM inventory i
+        <where>
+            <if test="keyword != null and keyword != ''">AND (i.material_name LIKE concat('%',#{keyword},'%') OR i.material_id LIKE concat('%',#{keyword},'%'))</if>
+        </where>
+        ORDER BY i.material_id
+    </select>
+
+    <select id="getInOutSummary" resultType="java.util.Map">
+        SELECT
+            '采购入库' as type, DATE_FORMAT(inbound_date, '%Y-%m-%d') as date, COUNT(*) as count, SUM(inbound_qty) as total_qty
+        FROM purchase_inbound
+        WHERE status = '1'
+        <if test="startDate != null and startDate != ''">AND inbound_date >= #{startDate}</if>
+        <if test="endDate != null and endDate != ''">AND inbound_date &lt;= #{endDate}</if>
+        GROUP BY DATE_FORMAT(inbound_date, '%Y-%m-%d')
+        UNION ALL
+        SELECT '采购退货' as type, DATE_FORMAT(return_date, '%Y-%m-%d') as date, COUNT(*) as count, SUM(return_qty) as total_qty
+        FROM purchase_return WHERE status = '1'
+        <if test="startDate != null and startDate != ''">AND return_date >= #{startDate}</if>
+        <if test="endDate != null and endDate != ''">AND return_date &lt;= #{endDate}</if>
+        GROUP BY DATE_FORMAT(return_date, '%Y-%m-%d')
+        UNION ALL
+        SELECT '销售出库' as type, DATE_FORMAT(outbound_date, '%Y-%m-%d') as date, COUNT(*) as count, SUM(outbound_qty) as total_qty
+        FROM sales_outbound WHERE status = '1'
+        <if test="startDate != null and startDate != ''">AND outbound_date >= #{startDate}</if>
+        <if test="endDate != null and endDate != ''">AND outbound_date &lt;= #{endDate}</if>
+        GROUP BY DATE_FORMAT(outbound_date, '%Y-%m-%d')
+        UNION ALL
+        SELECT '销售退货入库' as type, DATE_FORMAT(return_date, '%Y-%m-%d') as date, COUNT(*) as count, SUM(return_qty) as total_qty
+        FROM sales_return WHERE status = '1'
+        <if test="startDate != null and startDate != ''">AND return_date >= #{startDate}</if>
+        <if test="endDate != null and endDate != ''">AND return_date &lt;= #{endDate}</if>
+        GROUP BY DATE_FORMAT(return_date, '%Y-%m-%d')
+        ORDER BY date
+    </select>
+
+    <select id="getCheckSummary" resultType="java.util.Map">
+        SELECT c.check_id, c.material_name, c.book_qty, c.actual_qty, c.diff_qty, c.diff_reason, c.check_date, c.approval_status
+        FROM inventory_check c
+        <where>
+            <if test="startDate != null and startDate != ''">AND c.check_date >= #{startDate}</if>
+            <if test="endDate != null and endDate != ''">AND c.check_date &lt;= #{endDate}</if>
+        </where>
+        ORDER BY c.check_date DESC
+    </select>
+</mapper>

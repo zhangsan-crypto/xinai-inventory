@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinai.inventory.dao.InventoryDao">
+    <resultMap id="warningMap" type="InventoryWarning">
+        <id property="warningId" column="warning_id"/>
+        <result property="materialId" column="material_id"/>
+        <result property="materialName" column="material_name"/>
+        <result property="currentQty" column="current_qty"/>
+        <result property="safetyLower" column="safety_lower"/>
+        <result property="safetyUpper" column="safety_upper"/>
+        <result property="warningType" column="warning_type"/>
+        <result property="warningDate" column="warning_date"/>
+        <result property="status" column="status"/>
+        <result property="handler" column="handler"/>
+        <result property="handleTime" column="handle_time"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="getWarningList" resultMap="warningMap">
+        SELECT * FROM inventory_warning
+        <where>
+            <if test="warningType != null and warningType != ''">AND warning_type = #{warningType}</if>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+        </where>
+        ORDER BY create_time DESC
+        <if test="offset != null and limit != null">LIMIT #{offset}, #{limit}</if>
+    </select>
+
+    <select id="getWarningCount" resultType="int">
+        SELECT count(*) FROM inventory_warning
+        <where>
+            <if test="warningType != null and warningType != ''">AND warning_type = #{warningType}</if>
+            <if test="status != null and status != ''">AND status = #{status}</if>
+        </where>
+    </select>
+
+    <select id="getWarningById" resultMap="warningMap">
+        SELECT * FROM inventory_warning WHERE warning_id = #{warningId}
+    </select>
+
+    <insert id="insertWarning" parameterType="InventoryWarning" useGeneratedKeys="true" keyProperty="warningId">
+        INSERT INTO inventory_warning (material_id, material_name, current_qty, safety_lower, safety_upper, warning_type, warning_date, status)
+        VALUES (#{materialId}, #{materialName}, #{currentQty}, #{safetyLower}, #{safetyUpper}, #{warningType}, CURDATE(), '0')
+    </insert>
+
+    <update id="handleWarning">
+        UPDATE inventory_warning SET status = '1', handler = #{handler}, handle_time = NOW()
+        WHERE warning_id = #{warningId}
+    </update>
+
+    <select id="getUnhandledWarnings" resultMap="warningMap">
+        SELECT * FROM inventory_warning WHERE status = '0' ORDER BY warning_date DESC
+    </select>
+
+    <select id="getRecentWarnings" resultMap="warningMap">
+        SELECT * FROM inventory_warning WHERE status = '0' ORDER BY warning_date DESC LIMIT #{limit}
+    </select>
+</mapper>

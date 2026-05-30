@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinai.inventory.dao.SalesDao">
+    <resultMap id="orderMap" type="SalesOrder">
+        <id property="orderId" column="order_id"/>
+        <result property="orderYear" column="order_year"/>
+        <result property="orderMonth" column="order_month"/>
+        <result property="orderSeq" column="order_seq"/>
+        <result property="customerId" column="customer_id"/>
+        <result property="customerName" column="customer_name"/>
+        <result property="materialId" column="material_id"/>
+        <result property="materialName" column="material_name"/>
+        <result property="specModel" column="spec_model"/>
+        <result property="salesQty" column="sales_qty"/>
+        <result property="unitPrice" column="unit_price"/>
+        <result property="totalAmount" column="total_amount"/>
+        <result property="deliveryRequirement" column="delivery_requirement"/>
+        <result property="orderDate" column="order_date"/>
+        <result property="applicant" column="applicant"/>
+        <result property="approvalStatus" column="approval_status"/>
+        <result property="approver" column="approver"/>
+        <result property="approvalTime" column="approval_time"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <select id="getOrderList" resultMap="orderMap">
+        SELECT * FROM sales_order
+        <where>
+            <if test="startDate != null and startDate != ''">AND order_date >= #{startDate}</if>
+            <if test="endDate != null and endDate != ''">AND order_date &lt;= #{endDate}</if>
+            <if test="approvalStatus != null and approvalStatus != ''">AND approval_status = #{approvalStatus}</if>
+            <if test="customerId != null and customerId != ''">AND customer_id = #{customerId}</if>
+        </where>
+        ORDER BY create_time DESC
+        <if test="offset != null and limit != null">LIMIT #{offset}, #{limit}</if>
+    </select>
+
+    <select id="getOrderCount" resultType="int">
+        SELECT count(*) FROM sales_order
+        <where>
+            <if test="startDate != null and startDate != ''">AND order_date >= #{startDate}</if>
+            <if test="endDate != null and endDate != ''">AND order_date &lt;= #{endDate}</if>
+            <if test="approvalStatus != null and approvalStatus != ''">AND approval_status = #{approvalStatus}</if>
+        </where>
+    </select>
+
+    <select id="getOrderById" resultMap="orderMap">
+        SELECT * FROM sales_order WHERE order_id = #{orderId}
+    </select>
+
+    <insert id="insertOrder" parameterType="SalesOrder">
+        INSERT INTO sales_order (order_id, order_year, order_month, order_seq, customer_id, customer_name, material_id, material_name, spec_model, sales_qty, unit_price, total_amount, delivery_requirement, order_date, applicant, approval_status, remark)
+        VALUES (#{orderId}, #{orderYear}, #{orderMonth}, #{orderSeq}, #{customerId}, #{customerName}, #{materialId}, #{materialName}, #{specModel}, #{salesQty}, #{unitPrice}, #{totalAmount}, #{deliveryRequirement}, #{orderDate}, #{applicant}, '0', #{remark})
+    </insert>
+
+    <update id="updateOrder" parameterType="SalesOrder">
+        UPDATE sales_order SET customer_id = #{customerId}, customer_name = #{customerName},
+            material_id = #{materialId}, material_name = #{materialName}, spec_model = #{specModel},
+            sales_qty = #{salesQty}, unit_price = #{unitPrice}, total_amount = #{totalAmount},
+            delivery_requirement = #{deliveryRequirement}, order_date = #{orderDate}, remark = #{remark}
+        WHERE order_id = #{orderId}
+    </update>
+
+    <update id="updateOrderApproval">
+        UPDATE sales_order SET approval_status = #{status}, approver = #{approver}, approval_time = NOW()
+        WHERE order_id = #{orderId}
+    </update>
+
+    <delete id="deleteOrder">
+        DELETE FROM sales_order WHERE order_id = #{orderId}
+    </delete>
+
+    <select id="getMaxOrderSeq" resultType="string">
+        SELECT MAX(order_seq) FROM sales_order WHERE order_year = #{year} AND order_month = #{month}
+    </select>
+
+    <select id="getOrdersByStatus" resultMap="orderMap">
+        SELECT * FROM sales_order WHERE approval_status = #{status} ORDER BY order_date DESC
+    </select>
+</mapper>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinai.inventory.dao.PurchaseDao">
+    <resultMap id="inboundMap" type="PurchaseInbound">
+        <id property="inboundId" column="inbound_id"/>
+        <result property="planId" column="plan_id"/>
+        <result property="materialId" column="material_id"/>
+        <result property="materialName" column="material_name"/>
+        <result property="specModel" column="spec_model"/>
+        <result property="inboundQty" column="inbound_qty"/>
+        <result property="inboundDate" column="inbound_date"/>
+        <result property="supplierId" column="supplier_id"/>
+        <result property="operator" column="operator"/>
+        <result property="warehouseKeeper" column="warehouse_keeper"/>
+        <result property="status" column="status"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+    </resultMap>
+
+    <select id="getInboundList" resultMap="inboundMap">
+        SELECT * FROM purchase_inbound
+        <where>
+            <if test="startDate != null and startDate != ''">AND inbound_date >= #{startDate}</if>
+            <if test="endDate != null and endDate != ''">AND inbound_date &lt;= #{endDate}</if>
+            <if test="materialId != null and materialId != ''">AND material_id = #{materialId}</if>
+            <if test="supplierId != null and supplierId != ''">AND supplier_id = #{supplierId}</if>
+        </where>
+        ORDER BY create_time DESC
+        <if test="offset != null and limit != null">LIMIT #{offset}, #{limit}</if>
+    </select>
+
+    <select id="getInboundCount" resultType="int">
+        SELECT count(*) FROM purchase_inbound
+        <where>
+            <if test="startDate != null and startDate != ''">AND inbound_date >= #{startDate}</if>
+            <if test="endDate != null and endDate != ''">AND inbound_date &lt;= #{endDate}</if>
+            <if test="materialId != null and materialId != ''">AND material_id = #{materialId}</if>
+        </where>
+    </select>
+
+    <select id="getInboundById" resultMap="inboundMap">
+        SELECT * FROM purchase_inbound WHERE inbound_id = #{inboundId}
+    </select>
+
+    <insert id="insertInbound" parameterType="PurchaseInbound" useGeneratedKeys="true" keyProperty="inboundId">
+        INSERT INTO purchase_inbound (plan_id, material_id, material_name, spec_model, inbound_qty, inbound_date, supplier_id, operator, status, remark)
+        VALUES (#{planId}, #{materialId}, #{materialName}, #{specModel}, #{inboundQty}, #{inboundDate}, #{supplierId}, #{operator}, '0', #{remark})
+    </insert>
+
+    <update id="confirmInbound">
+        UPDATE purchase_inbound SET status = '1', warehouse_keeper = #{warehouseKeeper}
+        WHERE inbound_id = #{inboundId}
+    </update>
+
+    <select id="getPendingInbounds" resultMap="inboundMap">
+        SELECT * FROM purchase_inbound WHERE status = '0' ORDER BY inbound_date DESC
+    </select>
+</mapper>

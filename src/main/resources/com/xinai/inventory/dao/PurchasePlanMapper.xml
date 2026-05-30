@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinai.inventory.dao.PurchaseDao">
+    <resultMap id="planMap" type="PurchasePlan">
+        <id property="planId" column="plan_id"/>
+        <result property="planYear" column="plan_year"/>
+        <result property="planMonth" column="plan_month"/>
+        <result property="planSeq" column="plan_seq"/>
+        <result property="materialId" column="material_id"/>
+        <result property="materialName" column="material_name"/>
+        <result property="specModel" column="spec_model"/>
+        <result property="demandQty" column="demand_qty"/>
+        <result property="planDate" column="plan_date"/>
+        <result property="applicant" column="applicant"/>
+        <result property="approvalStatus" column="approval_status"/>
+        <result property="approver" column="approver"/>
+        <result property="approvalTime" column="approval_time"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <select id="getPlanList" resultMap="planMap">
+        SELECT * FROM purchase_plan
+        <where>
+            <if test="startDate != null and startDate != ''">AND plan_date >= #{startDate}</if>
+            <if test="endDate != null and endDate != ''">AND plan_date &lt;= #{endDate}</if>
+            <if test="approvalStatus != null and approvalStatus != ''">AND approval_status = #{approvalStatus}</if>
+        </where>
+        ORDER BY create_time DESC
+        <if test="offset != null and limit != null">LIMIT #{offset}, #{limit}</if>
+    </select>
+
+    <select id="getPlanCount" resultType="int">
+        SELECT count(*) FROM purchase_plan
+        <where>
+            <if test="startDate != null and startDate != ''">AND plan_date >= #{startDate}</if>
+            <if test="endDate != null and endDate != ''">AND plan_date &lt;= #{endDate}</if>
+            <if test="approvalStatus != null and approvalStatus != ''">AND approval_status = #{approvalStatus}</if>
+        </where>
+    </select>
+
+    <select id="getPlanById" resultMap="planMap">
+        SELECT * FROM purchase_plan WHERE plan_id = #{planId}
+    </select>
+
+    <insert id="insertPlan" parameterType="PurchasePlan">
+        INSERT INTO purchase_plan (plan_id, plan_year, plan_month, plan_seq, material_id, material_name, spec_model, demand_qty, plan_date, applicant, approval_status, remark)
+        VALUES (#{planId}, #{planYear}, #{planMonth}, #{planSeq}, #{materialId}, #{materialName}, #{specModel}, #{demandQty}, #{planDate}, #{applicant}, '0', #{remark})
+    </insert>
+
+    <update id="updatePlan" parameterType="PurchasePlan">
+        UPDATE purchase_plan
+        SET material_id = #{materialId}, material_name = #{materialName}, spec_model = #{specModel},
+            demand_qty = #{demandQty}, plan_date = #{planDate}, remark = #{remark}
+        WHERE plan_id = #{planId}
+    </update>
+
+    <update id="updatePlanApproval">
+        UPDATE purchase_plan SET approval_status = #{status}, approver = #{approver}, approval_time = NOW()
+        WHERE plan_id = #{planId}
+    </update>
+
+    <delete id="deletePlan">
+        DELETE FROM purchase_plan WHERE plan_id = #{planId}
+    </delete>
+
+    <select id="getMaxPlanSeq" resultType="string">
+        SELECT MAX(plan_seq) FROM purchase_plan WHERE plan_year = #{year} AND plan_month = #{month}
+    </select>
+
+    <select id="getPlansByStatus" resultMap="planMap">
+        SELECT * FROM purchase_plan WHERE approval_status = #{status} ORDER BY plan_date DESC
+    </select>
+</mapper>

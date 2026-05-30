@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinai.inventory.dao.PurchaseDao">
+    <resultMap id="supplierMap" type="Supplier">
+        <id property="supplierId" column="supplier_id"/>
+        <result property="supplierName" column="supplier_name"/>
+        <result property="contactPerson" column="contact_person"/>
+        <result property="contactPhone" column="contact_phone"/>
+        <result property="mainMaterial" column="main_material"/>
+        <result property="cooperationStatus" column="cooperation_status"/>
+        <result property="address" column="address"/>
+        <result property="remark" column="remark"/>
+        <result property="createTime" column="create_time"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <select id="getSupplierList" resultMap="supplierMap">
+        SELECT * FROM supplier
+        <where>
+            <if test="supplierName != null and supplierName != ''">AND supplier_name LIKE concat('%',#{supplierName},'%')</if>
+            <if test="cooperationStatus != null and cooperationStatus != ''">AND cooperation_status = #{cooperationStatus}</if>
+        </where>
+        ORDER BY create_time DESC
+        <if test="offset != null and limit != null">LIMIT #{offset}, #{limit}</if>
+    </select>
+
+    <select id="getSupplierCount" resultType="int">
+        SELECT count(*) FROM supplier
+        <where>
+            <if test="supplierName != null and supplierName != ''">AND supplier_name LIKE concat('%',#{supplierName},'%')</if>
+            <if test="cooperationStatus != null and cooperationStatus != ''">AND cooperation_status = #{cooperationStatus}</if>
+        </where>
+    </select>
+
+    <select id="getSupplierById" resultMap="supplierMap">
+        SELECT * FROM supplier WHERE supplier_id = #{supplierId}
+    </select>
+
+    <insert id="insertSupplier" parameterType="Supplier" useGeneratedKeys="true" keyProperty="supplierId">
+        INSERT INTO supplier (supplier_name, contact_person, contact_phone, main_material, cooperation_status, address, remark)
+        VALUES (#{supplierName}, #{contactPerson}, #{contactPhone}, #{mainMaterial}, '0', #{address}, #{remark})
+    </insert>
+
+    <update id="updateSupplier" parameterType="Supplier">
+        UPDATE supplier SET supplier_name = #{supplierName}, contact_person = #{contactPerson},
+            contact_phone = #{contactPhone}, main_material = #{mainMaterial},
+            cooperation_status = #{cooperationStatus}, address = #{address}, remark = #{remark}
+        WHERE supplier_id = #{supplierId}
+    </update>
+
+    <select id="getAllActiveSuppliers" resultMap="supplierMap">
+        SELECT * FROM supplier WHERE cooperation_status = '0' ORDER BY supplier_name
+    </select>
+</mapper>

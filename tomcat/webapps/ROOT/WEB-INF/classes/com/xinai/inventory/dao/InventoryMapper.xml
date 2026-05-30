@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xinai.inventory.dao.InventoryDao">
+    <resultMap id="inventoryMap" type="Inventory">
+        <id property="inventoryId" column="inventory_id"/>
+        <result property="materialId" column="material_id"/>
+        <result property="materialName" column="material_name"/>
+        <result property="specModel" column="spec_model"/>
+        <result property="currentQty" column="current_qty"/>
+        <result property="unit" column="unit"/>
+        <result property="refPrice" column="ref_price"/>
+        <result property="lastInboundDate" column="last_inbound_date"/>
+        <result property="lastOutboundDate" column="last_outbound_date"/>
+        <result property="updateTime" column="update_time"/>
+    </resultMap>
+
+    <select id="getInventoryList" resultMap="inventoryMap">
+        SELECT * FROM inventory
+        <where>
+            <if test="keyword != null and keyword != ''">AND (material_name LIKE concat('%',#{keyword},'%') OR material_id LIKE concat('%',#{keyword},'%'))</if>
+        </where>
+        ORDER BY update_time DESC
+        <if test="offset != null and limit != null">LIMIT #{offset}, #{limit}</if>
+    </select>
+
+    <select id="getInventoryCount" resultType="int">
+        SELECT count(*) FROM inventory
+        <where>
+            <if test="keyword != null and keyword != ''">AND (material_name LIKE concat('%',#{keyword},'%') OR material_id LIKE concat('%',#{keyword},'%'))</if>
+        </where>
+    </select>
+
+    <select id="getInventoryByMaterialId" resultMap="inventoryMap">
+        SELECT * FROM inventory WHERE material_id = #{materialId}
+    </select>
+
+    <insert id="insertInventory" parameterType="Inventory">
+        INSERT INTO inventory (material_id, material_name, spec_model, current_qty, unit, ref_price)
+        VALUES (#{materialId}, #{materialName}, #{specModel}, #{currentQty}, #{unit}, #{refPrice})
+    </insert>
+
+    <update id="updateInventoryQty">
+        UPDATE inventory SET current_qty = current_qty + #{qty} WHERE material_id = #{materialId}
+    </update>
+
+    <update id="updateInventoryQtyAdd">
+        UPDATE inventory SET current_qty = current_qty + #{qty}, last_inbound_date = CURDATE() WHERE material_id = #{materialId}
+    </update>
+
+    <update id="updateInventoryQtySubtract">
+        UPDATE inventory SET current_qty = current_qty - #{qty}, last_outbound_date = CURDATE() WHERE material_id = #{materialId}
+    </update>
+
+    <update id="updateInventoryQtyDirect">
+        UPDATE inventory SET current_qty = #{qty} WHERE material_id = #{materialId}
+    </update>
+
+    <select id="getAllInventory" resultMap="inventoryMap">
+        SELECT * FROM inventory ORDER BY material_id
+    </select>
+</mapper>
