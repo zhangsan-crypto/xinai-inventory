@@ -7,7 +7,7 @@
     <groupId>com.xinai</groupId>
     <artifactId>xinai-inventory</artifactId>
     <version>1.0.0</version>
-    <packaging>jar</packaging>
+    <packaging>war</packaging>
     <name>鑫爱建筑进销存管理信息系统</name>
 
     <parent>

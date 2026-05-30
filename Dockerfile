@@ -5,8 +5,9 @@ RUN mvn dependency:go-offline -B
 COPY src ./src
 RUN mvn clean package -DskipTests -B
 
-FROM eclipse-temurin:8-jre
-WORKDIR /app
-COPY --from=build /app/target/xinai-inventory.jar app.jar
+FROM tomcat:9.0-jre8
+WORKDIR /usr/local/tomcat
+COPY --from=build /app/target/xinai-inventory.war webapps/ROOT.war
+RUN rm -rf webapps/ROOT
 EXPOSE 8080
-CMD ["java", "-jar", "app.jar"]
+CMD ["catalina.sh", "run"]
